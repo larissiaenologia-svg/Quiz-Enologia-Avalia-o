@@ -1,152 +1,86 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiz: Enologia I</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #f6f0ed; color: #4b1d1d; margin:0; padding:0; }
-  header { background: #800000; color:#fff; text-align:center; padding:20px; font-size:1.8em; font-weight:bold; }
-  .container { max-width:800px; margin:30px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.2); }
-  .question { margin-bottom:15px; font-size:1.2em; }
-  .options button { display:block; margin:8px 0; padding:10px; width:100%; background:#f0e5df; border:none; border-radius:5px; cursor:pointer; transition:0.3s; font-size:1em; }
-  .options button:hover { background:#d9c1b0; }
-  #nextBtn { display:none; background:#800000; color:#fff; }
-  #result { text-align:center; font-size:1.2em; margin-top:20px; }
-  .feedback { margin-top:10px; font-style:italic; }
-  input[type=text], input[type=tel] { width:100%; padding:10px; margin:8px 0; border-radius:5px; border:1px solid #ccc; font-size:1em; }
-  #startBtn { background:#800000; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:1em; }
-  #startBtn:hover { background:#a00000; }
+body { font-family: Arial, sans-serif; background:#f5f0eb; color:#3a1f0b; margin:0; padding:0;}
+header { background:#6b0f1a; color:#fff; text-align:center; padding:20px; font-size:2em;}
+.container { max-width:900px; margin:30px auto; padding:20px; background:#fff; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);}
+button { background:#6b0f1a; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-top:10px;}
+button:hover { background:#8c1a27; }
+.hidden { display:none; }
+.correct { color:green; font-weight:bold; }
+.wrong { color:red; font-weight:bold; }
+input { padding:10px; width:90%; margin-bottom:10px; border-radius:5px; border:1px solid #ccc;}
 </style>
 </head>
 <body>
-
 <header>Quiz: Enologia I</header>
+<div class="container">
 
-<div class="container" id="intro">
-  <h2>Bem-vindo ao Quiz de Enologia I 🍇</h2>
-  <p>Digite seu nome e CPF para iniciar:</p>
-  <input type="text" id="name" placeholder="Nome completo">
-  <input type="tel" id="cpf" placeholder="CPF (somente números)">
-  <button id="startBtn">Iniciar Quiz</button>
-  <p style="font-size:0.9em; margin-top:10px;">Cada pessoa só pode responder uma vez.</p>
+<div id="inicio">
+<h2>Bem-vindo ao Quiz de Enologia</h2>
+<p>Digite seu nome e CPF para iniciar:</p>
+<input type="text" id="nome" placeholder="Nome" required><br>
+<input type="text" id="cpf" placeholder="CPF (somente números)" required><br>
+<button onclick="iniciarQuiz()">Iniciar Quiz</button>
 </div>
 
-<div class="container" id="quiz" style="display:none;">
-  <div class="question" id="questionText"></div>
-  <div class="options">
-    <button class="optionBtn" id="opt0"></button>
-    <button class="optionBtn" id="opt1"></button>
-    <button class="optionBtn" id="opt2"></button>
-    <button class="optionBtn" id="opt3"></button>
-  </div>
-  <div class="feedback" id="feedback"></div>
-  <button id="nextBtn">👉 Próxima Pergunta</button>
+<div id="quiz" class="hidden">
+<h3 id="pergunta"></h3>
+<div id="opcoes"></div>
+<div id="feedback"></div>
+<button id="proxima" class="hidden" onclick="proximaPergunta()">👉 Próxima Pergunta</button>
 </div>
 
-<div class="container" id="result" style="display:none;"></div>
+<div id="fim" class="hidden">
+<h2>Fim do Quiz!</h2>
+<p id="resultado"></p>
+<p>Cada teste é uma taça de aprendizado: deguste a jornada, celebre a sua evolução e prove que o seu conhecimento está na safra certa! Boa sorte. 🍷</p>
+</div>
 
-<audio id="correctSound">
-  <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg">
-</audio>
-<audio id="wrongSound">
-  <source src="https://actions.google.com/sounds/v1/cartoon/boing.ogg" type="audio/ogg">
-</audio>
+<audio id="somAcerto"><source src="https://freesound.org/data/previews/523/523658_3505850-lq.mp3" type="audio/mpeg"></audio>
+<audio id="somErro"><source src="https://freesound.org/data/previews/523/523660_3505850-lq.mp3" type="audio/mpeg"></audio>
 
 <script>
-const questions = [
-  {q:"Qual é a principal função da casca da uva?",options:["Armazenar água","Proteger o interior e conter pigmentos e compostos fenólicos","Produzir álcool","Aumentar o tamanho do cacho"],answer:1,explanation:"A casca protege o interior da uva e concentra compostos que influenciam a cor, sabor e taninos do vinho."},
-  {q:"Qual parte da uva contém a maior parte do açúcar?",options:["Casca","Polpa","Semente","Pedúnculo"],answer:1,explanation:"A polpa é rica em açúcares que servirão de substrato para a fermentação alcoólica."},
-  {q:"Qual é a função da semente na uva?",options:["Conferir açúcar","Produzir álcool","Conter taninos e nutrientes","Aumentar o tamanho da uva"],answer:2,explanation:"As sementes são ricas em taninos, que influenciam a adstringência do vinho."},
-  {q:"O que é desengace?",options:["Separar uvas das folhas","Remover o engaço do cacho antes da fermentação","Fermentar as uvas","Filtrar o mosto"],answer:1,explanation:"O desengace remove o engaço (caule do cacho) para evitar sabores herbáceos no vinho."},
-  {q:"O que significa mosto?",options:["Vinho pronto","Suco da uva antes da fermentação","Tanino da uva","Açúcar da polpa"],answer:1,explanation:"O mosto é o suco obtido da uva antes da fermentação."},
-  {q:"Qual é o objetivo da prensa?",options:["Extrair suco das uvas","Filtrar o vinho","Adicionar taninos","Aumentar acidez"],answer:0,explanation:"A prensa extrai o suco do mosto e separa os sólidos."},
-  {q:"O que é clarificação?",options:["Separar sólidos do líquido","Fermentar o mosto","Aumentar açúcar","Ajustar pH"],answer:0,explanation:"Clarificação remove partículas sólidas, deixando o mosto ou vinho mais límpido."},
-  {q:"O que é maceração?",options:["Misturar leveduras","Contato do mosto com cascas para extrair cor e taninos","Adicionar álcool","Clarificar o vinho"],answer:1,explanation:"A maceração permite extrair compostos da casca que contribuem para cor e taninos."},
-  {q:"Qual é a função da levedura?",options:["Produzir açúcar","Transformar açúcar em álcool","Remover taninos","Ajustar pH"],answer:1,explanation:"As leveduras fermentam os açúcares do mosto, produzindo álcool."},
-  {q:"Qual é o objetivo da fermentação alcoólica?",options:["Produzir ácido","Produzir álcool e CO2","Clarificar o vinho","Reduzir acidez"],answer:1,explanation:"A fermentação transforma os açúcares em álcool e gás carbônico."},
-  {q:"Qual é a função do SO2 no vinho?",options:["Aumentar açúcar","Prevenir oxidação e contaminação","Adicionar aroma","Aumentar acidez"],answer:1,explanation:"O dióxido de enxofre protege o vinho da oxidação e microrganismos indesejados."},
-  {q:"O que significa 'tanino'?",options:["Açúcar","Composto fenólico que confere adstringência","Fermento","Ácido"],answer:1,explanation:"Taninos contribuem para adstringência, corpo e potencial de envelhecimento do vinho."},
-  {q:"O que é pH do vinho?",options:["Concentração de açúcares","Medida de acidez","Quantidade de taninos","Cor do vinho"],answer:1,explanation:"O pH indica acidez; é essencial para estabilidade e sabor."},
-  {q:"Qual é a diferença entre vinho branco e tinto?",options:["Fermentação","Contatos com casca","Tipo de levedura","Açúcar"],answer:1,explanation:"Vinhos tintos fermentam com cascas para extrair cor e taninos; brancos normalmente não."},
-  {q:"O que é engarrafamento?",options:["Mistura de uvas","Colocação do vinho em garrafas","Prensagem","Filtração"],answer:1,explanation:"Engarrafamento é colocar o vinho pronto em garrafas."}
-  // OBS: Aqui você adicionaria as demais perguntas médias e difíceis (total 50)
-];
+// Variáveis globais
+let perguntas = [];
+let perguntaAtual = 0;
+let totalAcertos = 0;
+let totalErros = 0;
+let nomeDigitado = '';
+let cpfDigitado = '';
+const webAppURL = "https://script.google.com/macros/s/AKfycbwkXNCBX3jVkUx_20Hcv9EvuCIGCo3a1Zbj2IaE-9jTp4LVeWfOe0vlT8beN5TuqGyWkg/exec
 
-let shuffledQuestions = [];
-let currentQuestion = 0;
-let score = 0;
-let userName = '';
-let userCPF = '';
+// ---------------------- BANCO DE PERGUNTAS COMPLETO ----------------------
+perguntas = [
+/* 🟢 Fáceis (1–15) */
+{nivel:'facil', pergunta:'Qual é a parte que protege a uva?', opcoes:['Semente','Polpa','Casca','Cacho'], correta:2, explicacao:'A casca protege a uva e contém compostos fenólicos importantes.'},
+{nivel:'facil', pergunta:'Qual é o açúcar principal do mosto?', opcoes:['Frutose','Sacarose','Glicose','Lactose'], correta:0, explicacao:'A frutose é um dos açúcares presentes no mosto.'},
+{nivel:'facil', pergunta:'O que é um cacho de uva?', opcoes:['Um tipo de uva','Um conjunto de bagas','O caule da videira','A semente da uva'], correta:1, explicacao:'O cacho é o conjunto de bagas da uva.'},
+{nivel:'facil', pergunta:'Qual a função da vinícola?', opcoes:['Produzir suco','Produzir vinho','Plantio de uvas','Comercializar frutas'], correta:1, explicacao:'A vinícola transforma a uva em vinho.'},
+{nivel:'facil', pergunta:'O que é a polpa da uva?', opcoes:['Casca','Semente','Parte interna suculenta','Cacho'], correta:2, explicacao:'A polpa é a parte interna e suculenta da uva.'},
+{nivel:'facil', pergunta:'O que contém a semente da uva?', opcoes:['Açúcar','Compostos fenólicos','Água','Fermento'], correta:1, explicacao:'As sementes contêm compostos fenólicos que influenciam o vinho.'},
+{nivel:'facil', pergunta:'Qual é a principal cor do vinho branco?', opcoes:['Transparente','Amarelo','Vermelho','Roxo'], correta:1, explicacao:'O vinho branco tem coloração amarelada.'},
+{nivel:'facil', pergunta:'Qual é a função da fermentação?', opcoes:['Transformar açúcar em álcool','Dar cor ao vinho','Conservar a uva','Eliminar sementes'], correta:0, explicacao:'A fermentação transforma os açúcares em álcool.'},
+{nivel:'facil', pergunta:'O que é o mosto?', opcoes:['Suco da uva','Vinho pronto','Casca da uva','Fermento'], correta:0, explicacao:'O mosto é o suco extraído da uva.'},
+{nivel:'facil', pergunta:'O que significa “vinificação”?', opcoes:['Cultivo de uvas','Produção de vinho','Armazenamento de frutas','Classificação de bagas'], correta:1, explicacao:'Vinificação é o processo de produção de vinho.'},
+{nivel:'facil', pergunta:'Qual é a função da clarificação?', opcoes:['Dar sabor','Remover partículas em suspensão','Aumentar álcool','Mudar cor'], correta:1, explicacao:'A clarificação remove partículas e turbidez do mosto ou vinho.'},
+{nivel:'facil', pergunta:'O que é a maceração?', opcoes:['Fermentação','Extração de compostos da casca','Filtragem','Envelhecimento'], correta:1, explicacao:'A maceração extrai compostos da casca, como cor e aroma.'},
+{nivel:'facil', pergunta:'O que é a turfa da uva?', opcoes:['Semente','Polpa','Casca','Não existe turfa na uva'], correta:3, explicacao:'Turfa não é termo usado na uva; não existe turfa na uva.'},
+{nivel:'facil', pergunta:'O que é uma videira?', opcoes:['Fruta','Planta de uva','Vinho','Ferramenta'], correta:1, explicacao:'A videira é a planta que produz uvas.'},
+{nivel:'facil', pergunta:'O que é “porta-enxerto”?', opcoes:['Raiz de videira','Vinho jovem','Casca especial','Tipo de mosto'], correta:0, explicacao:'O porta-enxerto é a raiz sobre a qual se enxerta a videira.'},
 
-function shuffle(array){ return array.sort(()=> Math.random()-0.5); }
-
-function validateCPF(cpf){
-  cpf = cpf.replace(/\D/g,'');
-  if(cpf.length!==11) return false;
-  let sum=0, r;
-  for(let i=1;i<=9;i++) sum+=parseInt(cpf.substring(i-1,i))*(11-i);
-  r=(sum*10)%11; if(r===10||r===11) r=0; if(r!==parseInt(cpf.substring(9,10))) return false;
-  sum=0;
-  for(let i=1;i<=10;i++) sum+=parseInt(cpf.substring(i-1,i))*(12-i);
-  r=(sum*10)%11; if(r===10||r===11) r=0; if(r!==parseInt(cpf.substring(10,11))) return false;
-  return true;
-}
-
-function startQuiz(){
-  userName=document.getElementById('name').value.trim();
-  userCPF=document.getElementById('cpf').value.trim();
-  if(!userName||!userCPF){ alert("Preencha nome e CPF."); return; }
-  if(!validateCPF(userCPF)){ alert("CPF inválido."); return; }
-  if(localStorage.getItem('quiz_done_'+userCPF)){ alert("Este CPF já respondeu o quiz."); return; }
-  document.getElementById('intro').style.display='none';
-  document.getElementById('quiz').style.display='block';
-  shuffledQuestions=shuffle([...questions]);
-  showQuestion();
-}
-
-function showQuestion(){
-  const q=shuffledQuestions[currentQuestion];
-  document.getElementById('questionText').innerText=q.q;
-  q.options.forEach((opt,i)=>document.getElementById('opt'+i).innerText=opt);
-  document.getElementById('feedback').innerText='';
-  document.getElementById('nextBtn').style.display='none';
-}
-
-function checkAnswer(idx){
-  const q=shuffledQuestions[currentQuestion];
-  const correctSound=document.getElementById('correctSound');
-  const wrongSound=document.getElementById('wrongSound');
-  if(idx===q.answer){ score++; correctSound.play(); document.getElementById('feedback').innerText="✅ Acertou!";}
-  else{ wrongSound.play(); document.getElementById('feedback').innerText=`❌ Errado! Resposta correta: ${q.options[q.answer]}
-${q.explanation}`;}
-  document.querySelectorAll('.optionBtn').forEach(b=>b.disabled=true);
-  document.getElementById('nextBtn').style.display='block';
-}
-
-function nextQuestion(){
-  currentQuestion++;
-  if(currentQuestion<shuffledQuestions.length){ showQuestion(); document.querySelectorAll('.optionBtn').forEach(b=>b.disabled=false); }
-  else{ endQuiz(); }
-}
-
-function endQuiz(){
-  localStorage.setItem('quiz_done_'+userCPF,'true');
-  document.getElementById('quiz').style.display='none';
-  document.getElementById('result').style.display='block';
-  document.getElementById('result').innerHTML=`
-    <h2>Resultados, ${userName} 🍷</h2>
-    <p>CPF: ${userCPF}</p>
-    <p>Acertos: ${score}</p>
-    <p>Erros: ${shuffledQuestions.length-score}</p>
-    <p style="margin-top:20px; font-style:italic;">Cada teste é uma taça de aprendizado: deguste a jornada, celebre a sua evolução e prove que o seu conhecimento está na safra certa! Boa sorte.</p>`;
-}
-
-document.getElementById('startBtn').addEventListener('click',startQuiz);
-document.getElementById('nextBtn').addEventListener('click',nextQuestion);
-document.querySelectorAll('.optionBtn').forEach((btn,i)=>btn.addEventListener('click',()=>checkAnswer(i)));
-</script>
-
-</body>
-</html>
+/* 🟡 Médias (16–35) */
+{nivel:'medio', pergunta:'Qual é a temperatura ideal para fermentação do vinho branco?', opcoes:['10–15°C','18–22°C','25–30°C','30–35°C'], correta:1, explicacao:'Fermentação de vinhos brancos ocorre geralmente entre 18–22°C.'},
+{nivel:'medio', pergunta:'O que é desengaçamento?', opcoes:['Remoção de sementes','Separar bagas do cacho','Filtragem do mosto','Maceração'], correta:1, explicacao:'Desengaçamento é separar as bagas do cacho.'},
+{nivel:'medio', pergunta:'Qual é a função do dióxido de enxofre na vinificação?', opcoes:['Dar cor','Prevenir oxidação e contaminação','Fermentar','Aumentar álcool'], correta:1, explicacao:'O SO₂ protege o vinho de oxidação e microrganismos.'},
+{nivel:'medio', pergunta:'O que é “bentonita”?', opcoes:['Levedura','Agente clarificante','Corante','Açúcar'], correta:1, explicacao:'Bentonita é usada para clarificar o vinho removendo proteínas.'},
+{nivel:'medio', pergunta:'O que é maceração a frio?', opcoes:['Fermentação em baixa temperatura','Extração de cor e aroma antes da fermentação','Filtragem','Envelhecimento'], correta:1, explicacao:'Permite extrair aroma e cor sem iniciar fermentação.'},
+{nivel:'medio', pergunta:'Qual é a função da centrifugação na vinícola?', opcoes:['Clarificação do mosto','Aumentar álcool','Fermentar','Dar cor'], correta:0, explicacao:'A centrifugação remove partículas suspensas, clarificando o mosto.'},
+{nivel:'medio', pergunta:'O que é “ácido tartárico”?', opcoes:['Álcool','Açúcar','Ácido presente na uva','Fermento'], correta:2, explicacao:'Ácido tartárico é um ácido natural da uva que influencia acidez do vinho.'},
+{nivel:'medio', pergunta:'Qual a importância da temperatura no armazenamento do vinho?', opcoes:['Nenhuma','Controla fermentação e envelhecimento','Só muda cor','Só muda aroma'], correta:1, explicacao:'Temperatura adequada preserva aromas, cores e evita fermentações indesejadas.'},
+{nivel:'medio', pergunta:'O que é “rendimento em mosto”?', opcoes:['Quantidade de sementes','Quantidade de suco obtido da uva','Número de bagas','Volume de vinho pronto'], correta:1, explicacao:'É a quantidade de suco extraído da uva.'},
+{nivel:'medio', pergunta:'O que são leveduras selecionadas?', opcoes:['Bactérias','Fermento industrial','Microrganismos usados na fermentação','Álcool'], correta:2, explicacao:'Leveduras selecionadas fermentam o mosto de forma controlada.'},
+{nivel:'medio', pergunta:'O que é
